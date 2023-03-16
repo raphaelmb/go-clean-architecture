@@ -42,6 +42,7 @@ func main() {
 	})
 
 	createOrderUseCase := NewCreateOrderUseCase(db, eventDispatcher)
+	listOrdersUseCase := NewListOrderUseCase(db)
 
 	webserver := webserver.NewWebServer(configs.WebServerPort)
 	webOrderHandler := NewWebOrderHandler(db, eventDispatcher)
@@ -51,8 +52,8 @@ func main() {
 	go webserver.Start()
 
 	grpcServer := grpc.NewServer()
-	createOrderService := service.NewOrderService(*createOrderUseCase)
-	pb.RegisterOrderServiceServer(grpcServer, createOrderService)
+	orderServices := service.NewOrderService(*createOrderUseCase, *listOrdersUseCase)
+	pb.RegisterOrderServiceServer(grpcServer, orderServices)
 	reflection.Register(grpcServer)
 	fmt.Println("GRPC server started on port", configs.GRPCServerPort)
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", configs.GRPCServerPort))
